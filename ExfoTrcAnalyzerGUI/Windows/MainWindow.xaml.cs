@@ -31,7 +31,7 @@ using System.Windows.Media.Imaging;
 using ExfoTrcAnalyzer;
 using Microsoft.Win32;
 
-namespace ExfoTrcAnalyzerGUI;
+namespace ExfoTrcAnalyzerGUI.Windows;
 
 public partial class MainWindow : Window
 {

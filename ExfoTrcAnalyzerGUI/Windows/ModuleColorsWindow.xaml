@@ -1,4 +1,4 @@
-<Window x:Class="ExfoTrcAnalyzerGUI.ModuleColorsWindow"
+<Window x:Class="ExfoTrcAnalyzerGUI.Windows.ModuleColorsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="{DynamicResource L.set_colors_group}" Width="470" SizeToContent="Height"

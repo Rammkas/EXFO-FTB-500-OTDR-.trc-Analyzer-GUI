@@ -1,4 +1,4 @@
-// ==============================================================================
+﻿// ==============================================================================
 // ModuleColorsWindow.xaml.cs — порядок цветов модулей ВОК: 12 строк
 // «Модуль N ▾ цвет». Порядок применяется/сохраняется через окно настроек
 // (эта кнопка «Зберегти» только возвращает выбор в SettingsWindow).
@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace ExfoTrcAnalyzerGUI;
+namespace ExfoTrcAnalyzerGUI.Windows;
 
 public partial class ModuleColorsWindow : Window
 {

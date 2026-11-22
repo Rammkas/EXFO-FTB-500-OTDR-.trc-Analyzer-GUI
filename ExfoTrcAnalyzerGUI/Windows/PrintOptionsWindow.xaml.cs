@@ -1,6 +1,6 @@
-using System.Windows;
+﻿using System.Windows;
 
-namespace ExfoTrcAnalyzerGUI;
+namespace ExfoTrcAnalyzerGUI.Windows;
 
 // Диалог «что включить в отчёт»: карта + три таблицы
 public partial class PrintOptionsWindow : Window

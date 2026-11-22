@@ -1,6 +1,6 @@
-using System.Windows;
+﻿using System.Windows;
 
-namespace ExfoTrcAnalyzerGUI;
+namespace ExfoTrcAnalyzerGUI.Windows;
 
 public partial class HelpWindow : Window
 {

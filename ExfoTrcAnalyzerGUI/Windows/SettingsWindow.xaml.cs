@@ -1,4 +1,4 @@
-// ==============================================================================
+﻿// ==============================================================================
 // SettingsWindow.xaml.cs — окно порогов анализа (аналог otdr_config.txt).
 // Числа принимаются и с точкой, и с запятой (как в консольной версии).
 // ==============================================================================
@@ -8,7 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace ExfoTrcAnalyzerGUI;
+namespace ExfoTrcAnalyzerGUI.Windows;
 
 public partial class SettingsWindow : Window
 {
