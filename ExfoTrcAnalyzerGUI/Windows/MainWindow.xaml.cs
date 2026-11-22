@@ -157,12 +157,14 @@ public partial class MainWindow : Window
         if (dlg.ShowDialog(this) != true)
             return;
 
-        // Имена выбранных папок — в заголовок окна: «EXFO TRC Analyzer - <папки>»
-        var folderNames = dlg.FolderNames.Select(f => new DirectoryInfo(f).Name).ToList();
-        Title = BaseTitle + " - " + string.Join(" | ", folderNames);
-
         foreach (string folder in dlg.FolderNames)
         {
+            // Имя загруженной папки — в заголовок (без повторов, порядок загрузки)
+            string folderName = new DirectoryInfo(folder).Name;
+            if (!_titleFolders.Contains(folderName, StringComparer.OrdinalIgnoreCase))
+                _titleFolders.Add(folderName);
+            UpdateTitle();
+
             // Тот же порядок, что у консольной версии: по имени файла (Ordinal)
             var trcFiles = Directory.GetFiles(folder, "*.trc")
                                     .OrderBy(f => Path.GetFileName(f), StringComparer.Ordinal)
@@ -263,6 +265,16 @@ public partial class MainWindow : Window
         return entry;
     }
 
+    // Имена папок, загруженных кнопкой «Відкрити папку…» — в заголовок окна:
+    // «EXFO TRC Analyzer - <папка1> | <папка2>…». Одиночные файлы («Відкрити
+    // файл…») заголовок не меняют. «Очистить» возвращает базовый заголовок.
+    private readonly List<string> _titleFolders = [];
+
+    private void UpdateTitle() =>
+        Title = _titleFolders.Count == 0
+            ? BaseTitle
+            : BaseTitle + " - " + string.Join(" | ", _titleFolders);
+
     // ---------- Анализ одного файла (движок консольной версии) ----------
     private async Task AnalyzeEntryAsync(FileEntry entry)
     {
@@ -292,7 +304,8 @@ public partial class MainWindow : Window
                 fiberRow.CableTag = entry.CableTag;
                 // метку группы ставим ДО добавления строки: ListCollectionView
                 // определяет группу по значению свойства в момент добавления
-                fiberRow.Module = ModuleLabel(entry.ModuleNo, entry.CableTag, CurrentModuleMultiTag());
+                fiberRow.Module = ModuleLabel(entry.ModuleNo, entry.CableTag, CurrentModuleMultiTag(),
+                    entry.ModuleNo != null || _fibers.Any(r => r.ModuleNo != null));
                 // Пограничное затухание: PASS в жёлтой зоне -> вердикт ATTN,
                 // в «Причины отбраковки» — что именно попало в жёлтую зону
                 if (borderline && fiberRow.Verdict == Verdict.Pass)
@@ -447,10 +460,21 @@ public partial class MainWindow : Window
     private void RecomputeModuleLabels()
     {
         bool multiTag = CurrentModuleMultiTag();
+        // группы включаем, когда модули есть хотя бы у части строк (папка-кабель +
+        // одиночные файлы); строки без модуля попадают в группу «Без модуля»
+        bool anyModules = _fibers.Any(r => r.ModuleNo != null);
+        bool changed = false;
         foreach (var r in _fibers)
-            r.Module = ModuleLabel(r.ModuleNo, r.CableTag, multiTag);
+        {
+            string? label = ModuleLabel(r.ModuleNo, r.CableTag, multiTag, anyModules);
+            if (r.Module != label)
+            {
+                r.Module = label;
+                changed = true;
+            }
+        }
 
-        bool group = _fibers.Count > 0 && _fibers.All(r => r.Module != null);
+        bool group = anyModules;
         if (group && _moduleGroupDesc == null)
             _fibersView.GroupDescriptions.Add(_moduleGroupDesc = new PropertyGroupDescription(nameof(FiberRow.Module)));
         else if (!group && _moduleGroupDesc != null)
@@ -458,15 +482,22 @@ public partial class MainWindow : Window
             _fibersView.GroupDescriptions.Remove(_moduleGroupDesc);
             _moduleGroupDesc = null;
         }
+
+        // INPC сам по себе группы НЕ пересобирает (проверено тестом):
+        // после смены меток (появление/исчезновение второго кабеля, смена языка)
+        // нужен явный Refresh() — иначе строки остаются в старых группах
+        if (changed && _moduleGroupDesc != null)
+            _fibersView.Refresh();
     }
 
     private bool CurrentModuleMultiTag() =>
         _files.Where(f => f.ModuleNo != null).Select(f => f.CableTag).Distinct().Count() > 1;
 
-    private static string? ModuleLabel(int? moduleNo, string? tag, bool multiTag)
+    private static string? ModuleLabel(int? moduleNo, string? tag, bool multiTag, bool anyModules)
     {
         if (moduleNo == null)
-            return null;
+            // при загруженных кабелях строки без модуля — в отдельную группу
+            return anyModules ? Loc.T("module_none") : null;
         // «Модуль 1 — Синий»: цвет по стандарту TIA-598 с учётом порядка из настроек
         int colorIdx = AppSettings.Current.ColorForModule(moduleNo.Value);
         string label = $"{Loc.F("module_fmt", moduleNo)} — {Loc.T($"color_{colorIdx}")}";
@@ -1353,7 +1384,8 @@ public partial class MainWindow : Window
     // ---------- Очистить ----------
     private void BtnClear_Click(object sender, RoutedEventArgs e)
     {
-        Title = BaseTitle; // папка больше не загружена
+        _titleFolders.Clear();
+        Title = BaseTitle; // папки больше не загружены
         // «Все» остаётся в списке — чистим только файлы
         foreach (var f in _files.Where(f => !f.IsAllEntry).ToList())
             _files.Remove(f);

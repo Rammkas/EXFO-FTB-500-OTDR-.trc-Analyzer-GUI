@@ -189,6 +189,7 @@ public static class Loc
         ["col_warnings"] = new("Попередження", "Warnings", "Предупреждения"),
         ["col_module"] = new("Модуль", "Module", "Модуль"),
         ["module_fmt"] = new("Модуль {0}", "Module {0}", "Модуль {0}"),
+        ["module_none"] = new("Без модуля", "No module", "Без модуля"),
         // цвета модулей ВОК по TIA-598 (1..12)
         ["color_1"] = new("Синій", "Blue", "Синий"),
         ["color_2"] = new("Помаранчевий", "Orange", "Оранжевый"),
