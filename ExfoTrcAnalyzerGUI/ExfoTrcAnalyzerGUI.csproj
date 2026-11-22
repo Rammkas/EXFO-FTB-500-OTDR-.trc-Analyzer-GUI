@@ -12,7 +12,7 @@
     <!-- IMPORTANT: do NOT add <InvariantGlobalization>! WPF bindings with
          StringFormat depend on a non-neutral culture; with invariant globalization
          the app crashes ("Cannot find non-neutral culture related to 'en-us'"). -->
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
   </PropertyGroup>
 
 </Project>
