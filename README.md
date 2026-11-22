@@ -49,8 +49,11 @@ thresholds and shows PASS / ATTN / FAIL verdicts with reasons.
 
 ## Requirements
 
-- Windows x64, .NET 10 SDK (`global.json` pins SDK `10.0.404` with
-  `rollForward: latestFeature`). No NuGet dependencies.
+- **Windows 10/11 x64** (officially supported: Windows 10 1607+ and Windows 11;
+  Windows 7/8.1 are not supported — .NET 10 does not run on them).
+- .NET 10 SDK for building only (`global.json` pins SDK `10.0.404` with
+  `rollForward: latestFeature`); the published exe is self-contained, no .NET
+  installation needed on the target machine. No NuGet dependencies.
 
 ## Build & run
 
