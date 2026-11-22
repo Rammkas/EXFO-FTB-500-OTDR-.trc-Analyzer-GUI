@@ -1,0 +1,25 @@
+<!-- Light.xaml — светлая тема: палитра кистей. Ключи общие для обеих тем. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#FFEDEDED"/>
+    <SolidColorBrush x:Key="GroupBoxBackgroundBrush" Color="#FFF4F4F4"/>
+    <SolidColorBrush x:Key="ToolBarBrush" Color="#FFEFEFEF"/>
+    <SolidColorBrush x:Key="StatusBarBrush" Color="#FFE8E8E8"/>
+    <SolidColorBrush x:Key="ChromeBorderBrush" Color="#FFC9C9C9"/>
+    <SolidColorBrush x:Key="ForegroundBrush" Color="#FF1E1E1E"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="#FF0078D4"/>
+    <SolidColorBrush x:Key="AccentForegroundBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="ButtonBrush" Color="#FFE4E4E4"/>
+    <SolidColorBrush x:Key="TextBoxBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="ListBoxBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="TabHeaderBrush" Color="#FFE0E0E0"/>
+    <SolidColorBrush x:Key="TabSelectedBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="GridHeaderBackgroundBrush" Color="#FFF0F0F0"/>
+    <SolidColorBrush x:Key="GridLineBrush" Color="#FFE1E1E1"/>
+    <SolidColorBrush x:Key="RowAltBrush" Color="#FFF7F7F7"/>
+    <SolidColorBrush x:Key="RowHoverBrush" Color="#FFE5F1FB"/>
+    <SolidColorBrush x:Key="RowPassBrush" Color="#FFE8F5E8"/>
+    <SolidColorBrush x:Key="RowFailBrush" Color="#FFFBE4E4"/>
+    <SolidColorBrush x:Key="RowWarnBrush" Color="#FFFBF3D2"/>
+</ResourceDictionary>

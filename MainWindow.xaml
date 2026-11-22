@@ -1,0 +1,366 @@
+﻿<Window x:Class="ExfoTrcAnalyzerGUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ExfoTrcAnalyzerGUI"
+        Title="EXFO TRC Analyzer" Width="1200" Height="720" MinWidth="900" MinHeight="500"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource ForegroundBrush}">
+    <Window.Resources>
+        <local:DotBrushConverter x:Key="DotBrush"/>
+        <local:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <local:VerdictTextConverter x:Key="VerdictText"/>
+        <local:NullIfEmptyConverter x:Key="NullIfEmpty"/>
+        <local:FailsWarningsTooltipConverter x:Key="FailsWarningsTooltip"/>
+        <local:ModuleColorConverter x:Key="ModuleColor"/>
+
+        <!-- Стилы строк таблиц: цвет по вердикту + всплывающая подсказка -->
+        <Style x:Key="FiberRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+            <!-- ToolTip = null когда причин/предупреждений нет -> пустых подсказок нет -->
+            <Setter Property="ToolTip">
+                <Setter.Value>
+                    <MultiBinding Converter="{StaticResource FailsWarningsTooltip}">
+                        <Binding Path="Fails"/>
+                        <Binding Path="Warnings"/>
+                    </MultiBinding>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPass}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource RowPassBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsFail}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource RowFailBrush}"/>
+                </DataTrigger>
+                <!-- Жёлтая зона затухания перекрывает зелёный/красный -->
+                <DataTrigger Binding="{Binding Borderline}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource RowWarnBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ReasonRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+            <Setter Property="ToolTip" Value="{Binding Reason, Converter={StaticResource NullIfEmpty}}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPass}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource RowPassBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsFail}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource RowFailBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Borderline}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource RowWarnBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Кнопка с иконкой Segoe MDL2 + подписью -->
+        <Style x:Key="IconButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+
+        <!-- ======================= Тулбар ======================= -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource ToolBarBrush}"
+                BorderBrush="{DynamicResource ChromeBorderBrush}" BorderThickness="0,0,0,1"
+                Padding="6,5">
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                    <Button x:Name="BtnOpenFile" Style="{StaticResource IconButtonStyle}" Click="BtnOpenFile_Click"
+                            ToolTip="{DynamicResource L.tip_open_file}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE7C3;" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource L.btn_open_file}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnOpenFolder" Style="{StaticResource IconButtonStyle}" Click="BtnOpenFolder_Click"
+                            ToolTip="{DynamicResource L.tip_open_folder}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE838;" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource L.btn_open_folder}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnClear" Style="{StaticResource IconButtonStyle}" Click="BtnClear_Click"
+                            ToolTip="{DynamicResource L.tip_clear}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74D;" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource L.btn_clear}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Border Width="1" Background="{DynamicResource ChromeBorderBrush}" Margin="8,2"/>
+                    <Button x:Name="BtnExportCsv" Style="{StaticResource IconButtonStyle}" Click="BtnExportCsv_Click"
+                            ToolTip="{DynamicResource L.tip_export_csv}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE78E;" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource L.btn_export_csv}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnPrint" Style="{StaticResource IconButtonStyle}" Click="BtnPrint_Click"
+                            ToolTip="{DynamicResource L.tip_print}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE749;" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource L.btn_print}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <Button x:Name="BtnHelp" DockPanel.Dock="Right" Style="{StaticResource IconButtonStyle}"
+                        Click="BtnHelp_Click" ToolTip="{DynamicResource L.tip_help}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE897;" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="{DynamicResource L.btn_help}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnSettings" DockPanel.Dock="Right" Style="{StaticResource IconButtonStyle}" Click="BtnSettings_Click"
+                        ToolTip="{DynamicResource L.tip_settings}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE713;" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="{DynamicResource L.btn_settings}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnTheme" DockPanel.Dock="Right" Style="{StaticResource IconButtonStyle}"
+                        Click="BtnTheme_Click" ToolTip="{DynamicResource L.tip_theme}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE706;" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="{DynamicResource L.btn_theme}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <TextBlock x:Name="SearchLabel" DockPanel.Dock="Right" Text="{DynamicResource L.lbl_search}" VerticalAlignment="Center"
+                           Margin="8,0,0,0" Foreground="{DynamicResource ForegroundBrush}"/>
+                <TextBox x:Name="SearchBox" DockPanel.Dock="Right" Width="220" VerticalAlignment="Center"
+                         TextChanged="SearchBox_TextChanged"
+                         ToolTip="{DynamicResource L.tip_search}"/>
+            </DockPanel>
+        </Border>
+
+        <!-- ======================= Статус-бар ======================= -->
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource StatusBarBrush}"
+                BorderBrush="{DynamicResource ChromeBorderBrush}" BorderThickness="0,1,0,0"
+                Padding="8,3">
+            <TextBlock x:Name="StatusText" Text=""/>
+        </Border>
+
+        <!-- ======================= Основная область ======================= -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="LeftCol" Width="220" MinWidth="160"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Список файлов -->
+            <GroupBox Grid.Column="0" Header="{DynamicResource L.grp_files}">
+                <ListBox x:Name="FileList" SelectionChanged="FileList_SelectionChanged">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal"
+                                        ToolTip="{Binding TooltipText, Converter={StaticResource NullIfEmpty}}">
+                                <TextBlock Text="&#xE8FD;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                           VerticalAlignment="Center" Margin="0,0,4,0"
+                                           Visibility="{Binding IsAllEntry, Converter={StaticResource BoolToVis}}"/>
+                                <TextBlock Text="● " Foreground="{Binding Dot, Converter={StaticResource DotBrush}}"
+                                           FontSize="14"
+                                           Visibility="{Binding IsAllEntry, Converter={StaticResource InverseBoolToVis}}"/>
+                                <TextBlock Text="{Binding DisplayName}"
+                                           Foreground="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=Foreground}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </GroupBox>
+
+            <!-- Граница списка файлов: клик — свернуть/развернуть,
+                 перетаскивание — изменить ширину панели -->
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
+                          Background="{DynamicResource ChromeBorderBrush}"
+                          PreviewMouseLeftButtonDown="Splitter_Down"
+                          PreviewMouseLeftButtonUp="Splitter_Up"
+                          ToolTip="{DynamicResource L.tip_splitter}"/>
+            <TextBlock Grid.Column="1" x:Name="FileListToggleArrow" IsHitTestVisible="False"
+                       FontFamily="Segoe MDL2 Assets" Text="&#xE76B;" FontSize="10" Opacity="0.55"
+                       Foreground="{DynamicResource ForegroundBrush}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+            <!-- Вкладки с таблицами -->
+            <TabControl Grid.Column="2">
+
+                <!-- Волокна (summary_fibers.csv) -->
+                <TabItem Header="{DynamicResource L.tab_fibers}">
+                    <DataGrid x:Name="FibersGrid" RowStyle="{StaticResource FiberRowStyle}"
+                              SelectionChanged="FibersGrid_SelectionChanged"
+                              Sorting="Grid_Sorting">
+                        <!-- Группировка по модулям кабеля (включается кодом, когда модули
+                             определены): сворачиваемые заголовки «Модуль N (12)» -->
+                        <DataGrid.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="{x:Type GroupItem}">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type GroupItem}">
+                                                    <Expander IsExpanded="True">
+                                                        <Expander.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                <!-- плашка цвета модуля (TIA-598) -->
+                                                <Rectangle Width="14" Height="14" RadiusX="3" RadiusY="3"
+                                                           Margin="0,0,7,0" VerticalAlignment="Center"
+                                                           Fill="{Binding Items[0].ModuleNo, Converter={StaticResource ModuleColor}}"
+                                                           Stroke="{DynamicResource ChromeBorderBrush}" StrokeThickness="1"/>
+                                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                                                                <TextBlock Text="{Binding ItemCount, StringFormat=' ({0})'}"
+                                                                           Opacity="0.6" Margin="6,0,0,0" FontSize="13"/>
+                                                            </StackPanel>
+                                                        </Expander.Header>
+                                                        <!-- левая цветная граница группы = цвет модуля -->
+                                                        <Border BorderThickness="3,0,0,0"
+                                                                BorderBrush="{Binding Items[0].ModuleNo, Converter={StaticResource ModuleColor}}">
+                                                            <ItemsPresenter/>
+                                                        </Border>
+                                                    </Expander>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
+                                <GroupStyle.Panel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel/>
+                                    </ItemsPanelTemplate>
+                                </GroupStyle.Panel>
+                            </GroupStyle>
+                        </DataGrid.GroupStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="{DynamicResource L.col_fiber_id}" Binding="{Binding FiberId}" Width="80"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_len13}" Binding="{Binding Len13, StringFormat={}{0:0.0}}" Width="90"/>
+                            <DataGridTextColumn x:Name="FLoss13Column" Header="{DynamicResource L.col_loss13}" Binding="{Binding Loss13, StringFormat={}{0:0.000}}" Width="100"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_att13}" Binding="{Binding Atten13, StringFormat={}{0:0.000}}" Width="150"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_len15}" Binding="{Binding Len15, StringFormat={}{0:0.0}}" Width="90"/>
+                            <DataGridTextColumn x:Name="FLoss15Column" Header="{DynamicResource L.col_loss15}" Binding="{Binding Loss15, StringFormat={}{0:0.000}}" Width="100"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_att15}" Binding="{Binding Atten15, StringFormat={}{0:0.000}}" Width="150"/>
+                            <DataGridTextColumn x:Name="Qc13Column" Header="{DynamicResource L.col_qc13}" Binding="{Binding Qc13, StringFormat={}{0:0.000}}" Width="120"/>
+                            <DataGridTextColumn x:Name="Qc15Column" Header="{DynamicResource L.col_qc15}" Binding="{Binding Qc15, StringFormat={}{0:0.000}}" Width="120"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_verdict}" Binding="{Binding Verdict, Converter={StaticResource VerdictText}}" SortMemberPath="VerdictSortRank" Width="70"/>
+                            <DataGridTextColumn x:Name="ColFails" Header="{DynamicResource L.col_fails}" Binding="{Binding Fails}" Width="*"/>
+                            <DataGridTextColumn x:Name="ColWarnings" Header="{DynamicResource L.col_warnings}" Binding="{Binding Warnings}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+
+                <!-- Участки (sections_detail.csv) -->
+                <TabItem Header="{DynamicResource L.tab_sections}">
+                    <DataGrid x:Name="SectionsGrid" RowStyle="{StaticResource ReasonRowStyle}"
+                              SelectionChanged="SectionsGrid_SelectionChanged"
+                              Sorting="Grid_Sorting">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="{DynamicResource L.col_fiber_id}" Binding="{Binding FiberId}" Width="80"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_section_no}" Binding="{Binding Index}" Width="70"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_role}" Binding="{Binding Role}" Width="110"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_start}" Binding="{Binding StartM, StringFormat={}{0:0.0}}" Width="80"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_end}" Binding="{Binding EndM, StringFormat={}{0:0.0}}" Width="80"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_len13}" Binding="{Binding Len13, StringFormat={}{0:0.0}}" Width="90"/>
+                            <DataGridTextColumn x:Name="SLoss13Column" Header="{DynamicResource L.col_loss13}" Binding="{Binding Loss13, StringFormat={}{0:0.000}}" Width="100"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_att13}" Binding="{Binding Atten13, StringFormat={}{0:0.000}}" Width="150"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_len15}" Binding="{Binding Len15, StringFormat={}{0:0.0}}" Width="90"/>
+                            <DataGridTextColumn x:Name="SLoss15Column" Header="{DynamicResource L.col_loss15}" Binding="{Binding Loss15, StringFormat={}{0:0.000}}" Width="100"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_att15}" Binding="{Binding Atten15, StringFormat={}{0:0.000}}" Width="150"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_verdict}" Binding="{Binding Verdict, Converter={StaticResource VerdictText}}" SortMemberPath="VerdictSortRank" Width="70"/>
+                            <DataGridTextColumn x:Name="ColSectionsReason" Header="{DynamicResource L.col_reason}" Binding="{Binding Reason}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+
+                <!-- События (events_detail.csv) -->
+                <TabItem Header="{DynamicResource L.tab_events}">
+                    <DataGrid x:Name="EventsGrid" RowStyle="{StaticResource ReasonRowStyle}"
+                              SelectionChanged="EventsGrid_SelectionChanged"
+                              Sorting="Grid_Sorting">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="{DynamicResource L.col_fiber_id}" Binding="{Binding FiberId}" Width="80"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_event_no}" Binding="{Binding Index}" Width="70"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_event_role}" Binding="{Binding Role}" Width="140"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_coord}" Binding="{Binding CoordM, StringFormat={}{0:0.0}}" Width="90"/>
+                            <DataGridTextColumn x:Name="ELoss13Column" Header="{DynamicResource L.col_loss13}" Binding="{Binding Loss13, StringFormat={}{0:0.000}}" Width="100"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_refl13}" Binding="{Binding Refl13, StringFormat={}{0:0.000}}" Width="110"/>
+                            <DataGridTextColumn x:Name="ELoss15Column" Header="{DynamicResource L.col_loss15}" Binding="{Binding Loss15, StringFormat={}{0:0.000}}" Width="100"/>
+                            <DataGridTextColumn Header="{DynamicResource L.col_refl15}" Binding="{Binding Refl15, StringFormat={}{0:0.000}}" Width="110"/>
+                            <DataGridTextColumn x:Name="ColEventsReason" Header="{DynamicResource L.col_reason}" Binding="{Binding Reason}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+
+                <!-- Карта трассы: сырая кривая дБ/метры + участки + события -->
+                <TabItem Header="{DynamicResource L.tab_map}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}"
+                                BorderBrush="{DynamicResource ChromeBorderBrush}" BorderThickness="0,0,0,1"
+                                Padding="8,5">
+                            <DockPanel LastChildFill="False">
+                                <TextBlock x:Name="MapInfo" DockPanel.Dock="Left" Text=""
+                                           TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                <Button x:Name="BtnMapReset" DockPanel.Dock="Right" Style="{StaticResource IconButtonStyle}"
+                                        Click="BtnMapReset_Click" ToolTip="{DynamicResource L.tip_map_reset}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE72C;" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{DynamicResource L.btn_map_reset}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="BtnCursorB" DockPanel.Dock="Right" Content="{DynamicResource L.btn_cursor_b}" Margin="8,0,0,0"
+                                        Click="BtnCursorB_Click"
+                                        ToolTip="{DynamicResource L.tip_cursor_b}"/>
+                                <Button x:Name="BtnCursorA" DockPanel.Dock="Right" Content="{DynamicResource L.btn_cursor_a}" Margin="8,0,0,0"
+                                        Click="BtnCursorA_Click"
+                                        ToolTip="{DynamicResource L.tip_cursor_a}"/>
+                                <Button x:Name="BtnMapFiber" DockPanel.Dock="Right" Content="{DynamicResource L.btn_map_fiber}" Margin="8,0,0,0"
+                                        Click="BtnMapFiber_Click"
+                                        ToolTip="{DynamicResource L.tip_map_fiber}"/>
+                                <CheckBox x:Name="ChkMapAutoY" DockPanel.Dock="Right" Content="{DynamicResource L.chk_auto_y}" IsChecked="True"
+                                          Margin="10,0,0,0" VerticalAlignment="Center"
+                                          ToolTip="{DynamicResource L.tip_auto_y}"
+                                          Checked="MapAutoY_Changed" Unchecked="MapAutoY_Changed"/>
+                                <CheckBox x:Name="ChkMap1550" DockPanel.Dock="Right" Content="{DynamicResource L.lbl_1550nm}" IsChecked="True"
+                                          Margin="10,0,0,0" VerticalAlignment="Center"
+                                          Checked="MapWl_Changed" Unchecked="MapWl_Changed"/>
+                                <CheckBox x:Name="ChkMap1310" DockPanel.Dock="Right" Content="{DynamicResource L.lbl_1310nm}" IsChecked="True"
+                                          VerticalAlignment="Center"
+                                          Checked="MapWl_Changed" Unchecked="MapWl_Changed"/>
+                            </DockPanel>
+                        </Border>
+
+                        <Border Grid.Row="1" BorderBrush="{DynamicResource ChromeBorderBrush}" BorderThickness="1">
+                            <Canvas x:Name="MapCanvas" ClipToBounds="True" SizeChanged="MapCanvas_SizeChanged"
+                                    Cursor="SizeWE" Background="Transparent"
+                                    PreviewMouseWheel="MapCanvas_MouseWheel"
+                                    MouseLeftButtonDown="MapCanvas_MouseDown"
+                                    MouseMove="MapCanvas_MouseMove"
+                                    MouseLeftButtonUp="MapCanvas_MouseUp"/>
+                        </Border>
+
+                        <TextBlock x:Name="MapHint" Grid.Row="1" IsHitTestVisible="False"
+                                   Text="{DynamicResource L.map_hint}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Foreground="Gray" FontSize="13"/>
+
+                        <!-- Масштаб и показания курсоров — внизу графика (в затенённой зоне) -->
+                        <StackPanel x:Name="MapOverlayPanel" Grid.Row="1" Panel.ZIndex="5" IsHitTestVisible="False"
+                                    VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                                    Margin="60,0,0,30">
+                            <TextBlock x:Name="CursorInfo" Text="" FontSize="12"/>
+                            <TextBlock x:Name="MapZoom" Text="" FontSize="11" FontStyle="Italic" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </DockPanel>
+</Window>

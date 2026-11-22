@@ -1,0 +1,89 @@
+<Window x:Class="ExfoTrcAnalyzerGUI.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{DynamicResource L.set_title}" Width="480" SizeToContent="Height"
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource ForegroundBrush}">
+    <StackPanel Margin="14">
+
+        <GroupBox Header="{DynamicResource L.set_language}" Margin="0,0,0,8">
+            <ComboBox x:Name="LangCombo" Margin="6" HorizontalAlignment="Left" Width="220">
+                <ComboBoxItem Content="Українська"/>
+                <ComboBoxItem Content="English"/>
+                <ComboBoxItem Content="Русский"/>
+            </ComboBox>
+        </GroupBox>
+
+        <GroupBox Header="{DynamicResource L.set_buffer_group}">
+            <Grid Margin="6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="120"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <CheckBox x:Name="HasBufferSpool" Grid.Row="0" Grid.ColumnSpan="2"
+                          Content="{DynamicResource L.set_has_buffer}"
+                          Margin="0,2"/>
+                <TextBlock Grid.Row="1" Text="{DynamicResource L.set_buffer_min}" Margin="0,4"/>
+                <TextBox x:Name="BufferMinM" Grid.Row="1" Grid.Column="1" Margin="0,4"/>
+                <TextBlock Grid.Row="2" Text="{DynamicResource L.set_buffer_max}" Margin="0,4"/>
+                <TextBox x:Name="BufferMaxM" Grid.Row="2" Grid.Column="1" Margin="0,4"/>
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Header="{DynamicResource L.set_norms_group}" Margin="0,8,0,0">
+            <Grid Margin="6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="120"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="{DynamicResource L.set_att13}" Margin="0,4"/>
+                <TextBox x:Name="Atten1310Max" Grid.Row="0" Grid.Column="1" Margin="0,4"/>
+                <TextBlock Grid.Row="1" Text="{DynamicResource L.set_att15}" Margin="0,4"/>
+                <TextBox x:Name="Atten1550Max" Grid.Row="1" Grid.Column="1" Margin="0,4"/>
+                <TextBlock Grid.Row="2" Text="{DynamicResource L.set_splice}" Margin="0,4"/>
+                <TextBox x:Name="SpliceLossMax" Grid.Row="2" Grid.Column="1" Margin="0,4"/>
+                <TextBlock Grid.Row="3" Text="{DynamicResource L.set_match}" Margin="0,4"/>
+                <TextBox x:Name="MatchToleranceM" Grid.Row="3" Grid.Column="1" Margin="0,4"/>
+                <TextBlock Grid.Row="4" Text="{DynamicResource L.set_qc}" Margin="0,4"/>
+                <TextBox x:Name="QcConnectorLossMax" Grid.Row="4" Grid.Column="1" Margin="0,4"/>
+                <TextBlock Grid.Row="5" Text="{DynamicResource L.set_yellow}" Margin="0,4"/>
+                <TextBox x:Name="BorderlinePercent" Grid.Row="5" Grid.Column="1" Margin="0,4"/>
+            </Grid>
+        </GroupBox>
+
+        <CheckBox x:Name="CheckQcConnector" Margin="2,8,0,0"
+                  Content="{DynamicResource L.set_qc_check}"/>
+        <CheckBox x:Name="ShowLosses" Margin="2,4,0,0"
+                  Content="{DynamicResource L.set_show_losses}"/>
+        <CheckBox x:Name="CompareMode" Margin="2,4,0,0"
+                  Content="{DynamicResource L.set_compare}"/>
+
+        <!-- цвета модулей — в отдельном диалоге (слишком много места в окне порогов) -->
+        <Button x:Name="BtnModuleColors" Content="{DynamicResource L.set_colors_btn}"
+                HorizontalAlignment="Left" Margin="2,10,0,0" Click="BtnModuleColors_Click"/>
+
+        <TextBlock x:Name="ErrorText" Foreground="Firebrick" Margin="2,6,0,0" Visibility="Collapsed"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="{DynamicResource L.btn_save}" Click="BtnSave_Click" IsDefault="True"/>
+            <Button Content="{DynamicResource L.btn_cancel}" IsCancel="True"/>
+            <Button Content="{DynamicResource L.btn_reset}" Click="BtnReset_Click"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

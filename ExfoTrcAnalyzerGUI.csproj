@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <LangVersion>14</LangVersion>
+    <AssemblyName>exfo_trc_analyzer_gui</AssemblyName>
+    <RootNamespace>ExfoTrcAnalyzerGUI</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- IMPORTANT: do NOT add <InvariantGlobalization>! WPF bindings with
+         StringFormat depend on a non-neutral culture; with invariant globalization
+         the app crashes ("Cannot find non-neutral culture related to 'en-us'"). -->
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+</Project>
